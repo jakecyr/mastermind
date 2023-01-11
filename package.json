@@ -31,7 +31,6 @@
   },
   "pkg": {
     "scripts": "dist/**/*.js",
-    "assets": "node_modules/**/*",
     "targets": [
       "node16-macos-x64"
     ],
