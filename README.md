@@ -11,3 +11,18 @@ For example, you can swap out the `EnglishLanguage` language for `FrenchLanguage
 3. Run `npm start` to start the game
 
 Enter a list of colors separated by spaces to "guess" the secret. The game will tell you how many colors are correct, how many are in the correct position and how many are incorrect. Keep guessing until you get the secret or run out of guesses (10).
+
+## Run Pre-built Game
+
+Download the binary from the [latest release](https://github.com/jakecyr/mastermind/releases) and run in your terminal with:
+
+```bash
+./mastermind-macos-x64
+```
+
+## Compile to Binary
+
+1. Run `npm install` to install dependencies
+2. Run `npm run build` to build the project
+3. Run `npm run compile` to compile the project to a binary
+
