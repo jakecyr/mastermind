@@ -9,25 +9,27 @@ export class EnglishLanguage implements Language {
   }
 
   async printWelcomeMessage(): Promise<void> {
-    await this.userInteractor.sendUserResponse('Welcome to Mastermind!');
-    await this.userInteractor.sendUserResponse('You have 10 guesses to guess the secret code.');
-    await this.userInteractor.sendUserResponse('The secret code is 4 colors long.');
     await this.userInteractor.sendUserResponse(
-      'Valid colors are: red, blue, green, yellow, orange, purple.',
+      'Welcome to Mastermind!' +
+        '\n' +
+        'You have 10 guesses to guess the secret code.' +
+        '\n' +
+        'The secret code is 4 colors long.' +
+        '\n' +
+        'Valid colors are: red, blue, green, yellow, orange, purple.' +
+        '\n' +
+        'You will be given feedback on your guess.' +
+        '\n' +
+        'Feedback will be in the form of: green, yellow, red.' +
+        '\n' +
+        'Green means you have a correct color in the correct position.' +
+        '\n' +
+        'Yellow means you have a correct color in the wrong position.' +
+        '\n' +
+        'Red means you have an incorrect color.' +
+        '\n' +
+        'Good luck!',
     );
-    await this.userInteractor.sendUserResponse('You will be given feedback on your guess.');
-    await this.userInteractor.sendUserResponse(
-      'Feedback will be in the form of: green, yellow, red.',
-    );
-    await this.userInteractor.sendUserResponse(
-      'Green means you have a correct color in the correct position.',
-    );
-    await this.userInteractor.sendUserResponse(
-      'Yellow means you have a correct color in the wrong position.',
-    );
-    await this.userInteractor.sendUserResponse('Red means you have an incorrect color.');
-    await this.userInteractor.sendUserResponse('Good luck!');
-    await this.userInteractor.sendUserResponse('');
   }
 
   async askUserForGuess(): Promise<string[]> {

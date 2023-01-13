@@ -5,8 +5,9 @@
   "main": "dist/Main.js",
   "bin": "dist/Main.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/Main.js",
+    "build": "tsc && cp -r src/views dist",
+    "start": "node dist/ConsoleMain.js",
+    "start-web": "node dist/WebMain.js",
     "test": "jest",
     "compile": "pkg ."
   },
@@ -20,6 +21,8 @@
   "devDependencies": {
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
+    "@types/body-parser": "^1.19.2",
+    "@types/express": "^4.17.15",
     "@types/jest": "^29.2.5",
     "@types/lodash": "^4.14.191",
     "jest": "^29.3.1",
@@ -27,6 +30,8 @@
     "typescript": "^4.6.4"
   },
   "dependencies": {
+    "body-parser": "^1.20.1",
+    "express": "^4.18.2",
     "lodash": "^4.17.21"
   },
   "pkg": {

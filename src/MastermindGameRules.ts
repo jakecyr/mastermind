@@ -1,19 +1,12 @@
 import { range } from 'lodash';
 import { ValidColorsEnum } from './enums/ValidColorsEnum';
+import { InvalidColorCount } from './errors/InvalidColorCount';
+import { InvalidColorError } from './errors/InvalidColorError';
 import { Language } from './Language';
 
 export class MastermindGameRules {
   public static readonly MAX_NUMBER_OF_GUESSES = 10;
   public static readonly NUMBER_OF_PEGS = 4;
-  public static readonly NUMBER_OF_COLORS = 6;
-  public static readonly VALID_COLORS = [
-    ValidColorsEnum.RED,
-    ValidColorsEnum.BLUE,
-    ValidColorsEnum.GREEN,
-    ValidColorsEnum.YELLOW,
-    ValidColorsEnum.ORANGE,
-    ValidColorsEnum.PURPLE,
-  ];
   public static readonly CORRECT_POSITION = ValidColorsEnum.GREEN;
   public static readonly CORRECT_COLOR = ValidColorsEnum.YELLOW;
   public static readonly INCORRECT = ValidColorsEnum.RED;
@@ -34,6 +27,10 @@ export class MastermindGameRules {
     this.userWon = false;
   }
 
+  public gameIsOver(): boolean {
+    return this.currentGuess >= MastermindGameRules.MAX_NUMBER_OF_GUESSES || this.userWon;
+  }
+
   public setSecretCode(secretCode: string[]) {
     if (secretCode.length !== MastermindGameRules.NUMBER_OF_PEGS) {
       throw new Error('Secret code must be ' + MastermindGameRules.NUMBER_OF_PEGS + ' colors long');
@@ -43,8 +40,6 @@ export class MastermindGameRules {
   }
 
   public async runGame() {
-    await this.language.printWelcomeMessage();
-
     while (this.getTriesLeft() > 0) {
       const guess: string[] = await this.language.askUserForGuess();
       const guessWithValidColors: ValidColorsEnum[] = this.convertGuessToColors(guess);
@@ -122,31 +117,33 @@ export class MastermindGameRules {
     return code;
   }
 
-  getRandomColor(): string {
-    return MastermindGameRules.VALID_COLORS[
-      Math.floor(Math.random() * MastermindGameRules.NUMBER_OF_COLORS)
-    ];
+  getRandomColor(): ValidColorsEnum {
+    const colors: ValidColorsEnum[] = Object.values(ValidColorsEnum);
+    return colors[Math.floor(Math.random() * colors.length)];
   }
 
-  attemptIsWin(guess: string[]): boolean {
-    return guess.every((color: string) => color === MastermindGameRules.CORRECT_POSITION);
+  attemptIsWin(result: string[]): boolean {
+    return result.every((color: string) => color === MastermindGameRules.CORRECT_POSITION);
   }
 
   convertGuessToColors(guess: string[]): ValidColorsEnum[] {
-    const validColorsMap: Record<string, ValidColorsEnum> = {};
-
-    for (const color of MastermindGameRules.VALID_COLORS) {
-      validColorsMap[color.toString().toUpperCase()] = color;
+    if (guess.length !== MastermindGameRules.NUMBER_OF_PEGS) {
+      throw new InvalidColorCount(
+        `Invalid number of colors received: ${guess.length}. Expected: ${MastermindGameRules.NUMBER_OF_PEGS}`,
+      );
     }
 
-    return guess.map((color: string): ValidColorsEnum => {
-      const validColor: ValidColorsEnum = validColorsMap[color.toUpperCase()];
+    return guess.map((color: string): ValidColorsEnum => this.convertColorStringToEnum(color));
+  }
 
-      if (!validColor) {
-        throw new Error('Invalid color: ' + color);
-      }
+  private convertColorStringToEnum(color: string): ValidColorsEnum {
+    const formattedColorInput = color.toUpperCase();
+    const colors: ValidColorsEnum[] = Object.values(ValidColorsEnum);
 
-      return validColor;
-    });
+    if (!colors.includes(formattedColorInput as ValidColorsEnum)) {
+      throw new InvalidColorError('Invalid color received: ' + color);
+    }
+
+    return formattedColorInput as ValidColorsEnum;
   }
 }

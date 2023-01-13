@@ -1,3 +1,5 @@
+import { InvalidColorCount } from './errors/InvalidColorCount';
+import { InvalidColorError } from './errors/InvalidColorError';
 import { Language } from './Language';
 import { EnglishLanguage } from './languages/EnglishLanguage';
 import { MastermindGameRules } from './MastermindGameRules';
@@ -11,8 +13,20 @@ export class Main {
     const game = new MastermindGameRules(language);
 
     game.initGame();
+    await language.printWelcomeMessage();
 
-    await game.runGame();
+    while (!game.gameIsOver()) {
+      try {
+        await game.runGame();
+      } catch (e) {
+        if (e instanceof InvalidColorError || e instanceof InvalidColorCount) {
+          console.warn(e.message);
+        } else {
+          throw e;
+        }
+      }
+    }
+
     await userInteractor.close();
   }
 }

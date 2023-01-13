@@ -7,6 +7,8 @@ import { Language } from '../src/Language';
 import { UserInteractor } from '../src/UserInteractor';
 import { range } from 'lodash';
 import { ValidColorsEnum } from '../src/enums/ValidColorsEnum';
+import { InvalidColorError } from '../src/errors/InvalidColorError';
+import { InvalidColorCount } from '../src/errors/InvalidColorCount';
 
 describe('MasterMindGameRules', () => {
   describe('attemptGuess', () => {
@@ -146,6 +148,183 @@ describe('MasterMindGameRules', () => {
       expect(
         secretCode.every((color: string) => Object.values<string>(ValidColorsEnum).includes(color)),
       ).toBe(true);
+    });
+  });
+
+  describe('convertGuessToColors', () => {
+    it('should convert a guess to colors', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      const result = gameRules.convertGuessToColors(['red', 'blue', 'green', 'yellow']);
+
+      expect(result).toEqual([
+        ValidColorsEnum.RED,
+        ValidColorsEnum.BLUE,
+        ValidColorsEnum.GREEN,
+        ValidColorsEnum.YELLOW,
+      ]);
+    });
+
+    it('should throw an InvalidColorError error if a color is not recognized', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      expect(() =>
+        gameRules.convertGuessToColors(['reddy', 'blue', 'green', 'yellow']),
+      ).toThrowError(InvalidColorError);
+    });
+
+    it('should throw an InvalidColorCount error if a different count of colors is received than expected', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      expect(() => gameRules.convertGuessToColors([])).toThrowError(InvalidColorCount);
+
+      expect(() => gameRules.convertGuessToColors(['red', 'blue', 'green'])).toThrowError(
+        InvalidColorCount,
+      );
+
+      expect(() =>
+        gameRules.convertGuessToColors(['red', 'blue', 'green', 'red', 'green']),
+      ).toThrowError(InvalidColorCount);
+    });
+  });
+
+  describe('convertColorStringToEnum', () => {
+    it('should convert a color string to an enum', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      // @ts-ignore
+      const result = gameRules.convertColorStringToEnum('red');
+
+      expect(result).toEqual(ValidColorsEnum.RED);
+    });
+
+    it('should throw an error if the color is not recognized', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      // @ts-ignore
+      expect(() => gameRules.convertColorStringToEnum('reddy')).toThrowError(InvalidColorError);
+    });
+  });
+
+  describe('attemptIsWin', () => {
+    it('should return true if the attempt is a win', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      const result = gameRules.attemptIsWin([
+        MastermindGameRules.CORRECT_POSITION,
+        MastermindGameRules.CORRECT_POSITION,
+        MastermindGameRules.CORRECT_POSITION,
+        MastermindGameRules.CORRECT_POSITION,
+      ]);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if the attempt is not a win', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      const result = gameRules.attemptIsWin([
+        MastermindGameRules.CORRECT_COLOR,
+        MastermindGameRules.INCORRECT,
+        MastermindGameRules.INCORRECT,
+        MastermindGameRules.INCORRECT,
+      ]);
+
+      expect(result).toBe(false);
+
+      const result2 = gameRules.attemptIsWin([
+        MastermindGameRules.CORRECT_COLOR,
+        MastermindGameRules.CORRECT_COLOR,
+        MastermindGameRules.CORRECT_COLOR,
+        MastermindGameRules.CORRECT_COLOR,
+      ]);
+
+      expect(result2).toBe(false);
+    });
+  });
+
+  describe('getRandomColor', () => {
+    it('should return a random color', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      const result = gameRules.getRandomColor();
+
+      expect(Object.values<string>(ValidColorsEnum).includes(result)).toBe(true);
+    });
+  });
+
+  describe('gameIsOver', () => {
+    it('should return true if there are no more guesses', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+      gameRules.initGame();
+
+      // @ts-ignore
+      gameRules.currentGuess = MastermindGameRules.MAX_NUMBER_OF_GUESSES;
+
+      expect(gameRules.gameIsOver()).toBeTruthy();
+      
+      // @ts-ignore
+      gameRules.currentGuess = MastermindGameRules.MAX_NUMBER_OF_GUESSES + 5;
+
+      expect(gameRules.gameIsOver()).toBeTruthy();
+    });
+
+    it('should return true if the user has won', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+      gameRules.initGame();
+
+      // @ts-ignore
+      gameRules.userWon = true;
+
+      expect(gameRules.gameIsOver()).toBeTruthy();
+    });
+
+    it('should return false if the game just started', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+      gameRules.initGame();
+
+      gameRules.initGame();
+
+      expect(gameRules.gameIsOver()).toBeFalsy();
+    });
+
+    it('should return false after initGame is called', () => {
+      const userInteractor: UserInteractor = new ConsoleUserInteractor();
+      const language: Language = new EnglishLanguage(userInteractor);
+      const gameRules = new MastermindGameRules(language);
+
+      gameRules.initGame();
+
+      // @ts-ignore
+      gameRules.userWon = true;
+
+      expect(gameRules.gameIsOver()).toBeTruthy();
+
+      gameRules.initGame();
+
+      expect(gameRules.gameIsOver()).toBeFalsy();
     });
   });
 });
